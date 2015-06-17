@@ -126,23 +126,30 @@ class WebHooks @Inject() (config: Config, mapper: ObjectMapper,
 
     val pusher = mangleName(event.pusher.name)
     val url = shortener.shorten(event.compare)
-
-    broadcast(
-      event.repository.fullName,
-      styled() +
-      s"[${event.repository.name}] $pusher pushed " +
-      bold(event.commits.size) +
-      s" commit${plural(event.commits.size)} to ${shortenRef(event.ref)}: $url")
-
-    for ((commit, i) <- event.commits.zipWithIndex) {
-      if (i >= 5) {
-        broadcast(event.repository.fullName, styled() + s"(for more, visit $url)")
-        break()
-      } else {
-        broadcast(event.repository.fullName,
-          bold(s"${event.repository.name}/${shortenRef(event.ref)}") +
-            s" ${shortenHash(commit.id)}: ${shortenMessage(commit.message)} (by ${mangleName(commit.author.name)})")
+    if(event.commits.size!=0){
+      broadcast(
+        event.repository.fullName,
+        styled() +
+        s"[${event.repository.name}] $pusher pushed " +
+        bold(event.commits.size) +
+        s" commit${plural(event.commits.size)} to ${shortenRef(event.ref)}: $url")
+  
+      for ((commit, i) <- event.commits.zipWithIndex) {
+        if (i >= 5) {
+          broadcast(event.repository.fullName, styled() + s"(for more, visit $url)")
+          break()
+        } else {
+          broadcast(event.repository.fullName,
+            bold(s"${event.repository.name}/${shortenRef(event.ref)}") +
+              s" ${shortenHash(commit.id)}: ${shortenMessage(commit.message)} (by ${mangleName(commit.author.name)})")
+        }
       }
+    }
+    else{
+      broadcast(
+        event.repository.fullName,
+        styled() +
+        s"[${event.repository.name}] $pusher deleted branch ${shortenRef(event.ref)}: $url")
     }
   }
 
